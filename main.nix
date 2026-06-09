@@ -9,12 +9,12 @@ let
 
   userConfig =
     let
-      maybe = getEnv "NIX_SCRIPT_CONFIG";
+      configFromEnv = getEnv "NIX_SCRIPT_CONFIG";
     in
     if configFromNixApi != null then
       import configFromNixApi
-    else if maybe != "" then
-      import maybe
+    else if configFromEnv != "" then
+      import configFromEnv
     else
       abort "[nix-script] Error: NIX_SCRIPT_CONFIG environment variable is not set";
 
