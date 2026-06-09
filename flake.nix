@@ -21,7 +21,7 @@
             (
               import
                 ./nix/outputs/legacyPackages/loadNixScripts.nix
-                { nixpkgs = inputs.nixpkgs.legacyPackages.${final.stdenv.hostPlatform.system}; }
+                { nixpkgsFromFlake = inputs.nixpkgs.legacyPackages.${final.stdenv.hostPlatform.system}; }
             )
             { };
 
@@ -38,7 +38,7 @@
           nixpkgs = inputs.nixpkgs.legacyPackages.${system};
         in
         nixpkgs.callPackage
-          (import ./nix/outputs/legacyPackages/loadNixScripts.nix { inherit nixpkgs; })
+          (import ./nix/outputs/legacyPackages/loadNixScripts.nix { nixpkgsFromFlake = nixpkgs; })
           { };
 
       packages.default =
