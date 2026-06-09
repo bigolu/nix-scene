@@ -17,7 +17,6 @@ let
   inherit (lib)
     pipe
     pathIsDirectory
-    listFilesRecursive
     toList
     splitString
     hasPrefix
@@ -29,6 +28,7 @@ let
     escapeShellArg
     ;
   inherit (lib.lists) findFirstIndex;
+  inherit (lib.filesystem) listFilesRecursive;
 
   directivePrefix = "#nix ";
 
