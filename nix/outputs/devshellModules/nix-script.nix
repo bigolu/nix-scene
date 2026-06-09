@@ -3,6 +3,7 @@
 let
   inherit (lib) types mkOption optionalAttrs;
   inherit (pkgs.stdenv.hostPlatform) system;
+  inherit (inputs) self;
 in
 {
   options.nix-script = {
@@ -16,10 +17,13 @@ in
     };
   };
 
-  config.devshell.startup = optionalAttrs (config.nix-script.paths != []) {
-    # Check `pkgs` in case the overlay was used
-    nix-script.text = (pkgs.loadNixScripts or inputs.self.legacyPackages.${system}.loadNixScripts) {
-      inherit (config.nix-script) config paths;
+  # Check `pkgs` before `inputs` in case the overlay was used
+  config.devshell = {
+    packages = [ (pkgs.nix-script or self.packages.${system}.nix-script) ];
+    startup = optionalAttrs (config.nix-script.paths != []) {
+      nix-script.text = (pkgs.loadNixScripts or self.legacyPackages.${system}.loadNixScripts) {
+        inherit (config.nix-script) config paths;
+      };
     };
   };
 }
