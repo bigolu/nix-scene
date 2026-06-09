@@ -22,6 +22,4 @@
       extra-repl-overlays = $PRJ_ROOT/nix/repl-overlay.nix
     "
   '';
-
-  nix-script.paths = [ ../../../test.bash ];
 }

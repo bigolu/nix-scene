@@ -26,11 +26,22 @@ let
     concatLines
     optionalString
     escapeShellArg
+    any
     ;
   inherit (lib.lists) findFirstIndex;
   inherit (lib.filesystem) listFilesRecursive;
 
   directivePrefix = "#nix ";
+
+  isDirective = hasPrefix directivePrefix;
+
+  hasDirective =
+    file:
+    pipe file [
+      readFile
+      (splitString "\n")
+      (any isDirective)
+    ];
 
   loadNixScript =
     script:
@@ -38,7 +49,7 @@ let
       args = pipe script [
         readFile
         (splitString "\n")
-        (filter (hasPrefix directivePrefix))
+        (filter isDirective)
         (map (removePrefix directivePrefix))
         (concatMap (splitString " "))
         (filter (s: s != ""))
@@ -60,6 +71,7 @@ let
 in
 pipe paths [
   (concatMap (path: (if pathIsDirectory path then listFilesRecursive else toList) path))
+  (filter hasDirective)
   (concatMap (path: with (loadNixScript path); [ packageString env ]))
   concatLines
   (
