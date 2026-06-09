@@ -60,7 +60,6 @@ let
 in
 pipe paths [
   (concatMap (path: (if pathIsDirectory path then listFilesRecursive else toList) path))
-  (map loadNixScript)
   (concatMap (path: with (loadNixScript path); [ packageString env ]))
   concatLines
   (
