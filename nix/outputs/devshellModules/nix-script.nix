@@ -8,7 +8,6 @@ in
   options.nix-script = {
     config = mkOption {
       type = types.oneOf [ types.str types.path ];
-      default = null;
     };
 
     paths = mkOption {
@@ -17,8 +16,8 @@ in
     };
   };
 
-  config.devshell.startup = optionalAttrs (config.nix-script.paths != [] || config.nix-script.config != null) {
-    # Check `pkgs` in case users used the overlay
+  config.devshell.startup = optionalAttrs (config.nix-script.paths != []) {
+    # Check `pkgs` in case the overlay was used
     nix-script.text = (pkgs.loadNixScripts or inputs.self.legacyPackages.${system}.loadNixScripts) {
       inherit (config.nix-script) config paths;
     };

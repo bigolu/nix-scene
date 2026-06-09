@@ -1,38 +1,5 @@
 {
-  nixpkgs =
-    let
-      inherit (builtins) pathExists getFlake toString;
-
-      nixpkgsFromUserFlake =
-        let
-          findFlakeDir =
-            directory:
-            let
-              maybe = directory + /flake.nix;
-            in
-            if pathExists maybe then
-              directory
-            else if directory == /. then
-              null
-            else
-              findFlakeDir (directory + /..);
-
-          flakeDir = findFlakeDir ./.;
-        in
-        if flakeDir == null then
-          null
-        else
-          let
-            flake = getFlake (toString flakeDir);
-          in
-          flake.inputs.nixpkgs or null;
-
-      nixpkgs = if nixpkgsFromUserFlake != null then nixpkgsFromUserFlake else <nixpkgs>;
-    in
-    import nixpkgs {
-      config = { };
-      overlays = [ ];
-    };
+  nixpkgs = abort "[nix-script] Error: You must provide a nixpkgs instance.";
 
   buildEnv =
     {

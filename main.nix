@@ -1,26 +1,22 @@
 {
   packageString,
-  nixpkgsFromFlake ? null,
-  nixApiConfig ? null,
+  configFromNixApi ? null,
 }:
 let
   inherit (builtins) getEnv;
-  calledFromNixApi = nixpkgsFromFlake != null;
 
-  defaultConfig =
-    (import ./default-config.nix)
-      // (if calledFromNixApi then { nixpkgs = nixpkgsFromFlake; } else {});
+  defaultConfig = import ./default-config.nix;
 
   userConfig =
     let
       maybe = getEnv "NIX_SCRIPT_CONFIG";
     in
-    if calledFromNixApi && nixApiConfig != null then
-      import nixApiConfig
+    if configFromNixApi != null then
+      import configFromNixApi
     else if maybe != "" then
       import maybe
     else
-      {};
+      abort "[nix-script] Error: NIX_SCRIPT_CONFIG environment variable is not set";
 
   config = defaultConfig // userConfig;
 

@@ -98,16 +98,19 @@ function main {
 		fi
 	fi
 
+	local -a command=()
 	if [[ ${NIX_SCRIPT_DEBUG:-} == 'true' ]]; then
 		debug "Runnning $SHELL to debug"
 		debug "Environment: $env"
 		debug "Interpreter: $interpreter"
 		debug "Script: $script"
 		debug "Arguments: ${script_args[*]}"
-		exec -- "$env/entrypoint" "$SHELL"
+		command=("$env/entrypoint" "$SHELL")
+	else
+		command=("$env/entrypoint" "$interpreter" "$script" "${script_args[@]}")
 	fi
 
-	"$env/entrypoint" "$interpreter" "$script" "${script_args[@]}"
+	exec -- "${command[@]}"
 }
 
 function nix {

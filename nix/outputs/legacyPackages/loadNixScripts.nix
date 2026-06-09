@@ -1,10 +1,9 @@
-{ nixpkgsFromFlake }:
 {
   lib,
   writeText,
 }:
 {
-  config ? null,
+  config,
   paths ? [],
 }:
 let
@@ -61,13 +60,10 @@ let
 
       env = import ../../../main.nix {
         inherit packageString;
-        inherit nixpkgsFromFlake;
-        nixApiConfig = config;
+        configFromNixApi = config;
       };
     in
-    {
-      inherit env packageString;
-    };
+    { inherit env packageString; };
 in
 pipe paths [
   (concatMap (path: (if pathIsDirectory path then listFilesRecursive else toList) path))
@@ -77,13 +73,11 @@ pipe paths [
   (
     cacheLines:
       (
-        optionalString (paths != []) ''
+        optionalString (cacheLines != "") ''
           export NIX_SCRIPT_CACHE=${writeText "nix-script-cache" cacheLines}
         ''
-      ) + (
-        optionalString (config != null) ''
-          export NIX_SCRIPT_CONFIG=${escapeShellArg config}
-        ''
-      )
+      ) + ''
+        export NIX_SCRIPT_CONFIG=${escapeShellArg config}
+      ''
   )
 ]
