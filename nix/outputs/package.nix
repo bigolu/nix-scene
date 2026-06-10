@@ -1,41 +1,30 @@
 {
-  resholve,
-  writeText,
+  writeTextFile,
   lib,
   bash,
 }:
 let
   inherit (lib) getExe fileContents toShellVar;
-
   pname = "nix-script";
-  interpreter = bash;
 in
-resholve.mkDerivation {
-  inherit pname;
-  version = "0.1.0";
-  src = writeText pname ''
-    #!${getExe interpreter}
+# PERF: Since we don't cache this build we don't want to have many build
+# dependencies. For this reason, we don't use `resholve` since it depends on
+# Python.
+writeTextFile {
+  name = "${pname}";
+  executable = true;
+  destination = "/bin/${pname}";
+  meta.mainProgram = pname;
+
+  text = ''
+    #!${getExe bash}
 
     ${toShellVar "NIX_SCRIPT_MAIN" ../../main.nix}
 
     ${fileContents ../../nix-script.bash}
   '';
-  meta.mainProgram = pname;
+
   passthru.devshellModule = {
-    devshell.packages = [ interpreter ];
-  };
-  dontUnpack = true;
-  installPhase = ''
-    install -D $src $out/bin/${pname}
-  '';
-  solutions.default = {
-    scripts = [ "bin/${pname}" ];
-    interpreter = "${interpreter}/bin/bash";
-    inputs = [ ];
-    execer = [ ];
-    keep = {
-      "$env" = true;
-    };
-    fake.external = [ "nix" "--" ];
+    devshell.packages = [bash];
   };
 }
