@@ -7,9 +7,15 @@ let
 in
 {
   options.nix-script = {
+    enable = mkOption {
+      default = true;
+      example = true;
+      type = types.bool;
+      description = "Whether to enable the setup for `nix-script`.";
+    };
+
     config = mkOption {
       type = types.oneOf [ types.str types.path ];
-      default = null;
     };
 
     paths = mkOption {
@@ -18,10 +24,10 @@ in
     };
   };
 
-  # Check `pkgs` before `inputs` in case the overlay was used
+  # Check `pkgs` before `self` in case the overlay was used
   config.devshell = {
     packages = [ (pkgs.nix-script or self.packages.${system}.nix-script) ];
-    startup = optionalAttrs (config.nix-script.paths != [] || config.nix-script.config != null) {
+    startup = optionalAttrs config.nix-script.enable {
       nix-script.text = (pkgs.loadNixScripts or self.legacyPackages.${system}.loadNixScripts) {
         inherit (config.nix-script) config paths;
       };
