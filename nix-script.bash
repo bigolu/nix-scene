@@ -92,7 +92,7 @@ function main {
 		if [[ ${NIX_SCRIPT_GC_ROOT:-} == 'true' ]]; then
 			local env_basename="${env##*/}"
 			local gc_root="$GC_ROOT_DIRECTORY/$env_basename"
-			if [[ ! -e gc_root ]]; then
+			if [[ ! -e $gc_root ]]; then
 				nix build --out-link "$gc_root" "$env"
 			fi
 		fi
