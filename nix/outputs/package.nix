@@ -5,11 +5,10 @@
   bash,
 }:
 let
-  inherit (lib) getExe fileContents concatMapAttrsStringSep;
+  inherit (lib) getExe fileContents toShellVar;
 
   pname = "nix-script";
   interpreter = bash;
-  env = { NIX_SCRIPT_MAIN = ../../main.nix; };
 in
 resholve.mkDerivation {
   inherit pname;
@@ -17,7 +16,7 @@ resholve.mkDerivation {
   src = writeText pname ''
     #!${getExe interpreter}
 
-    ${concatMapAttrsStringSep "\n" (name: value: "export ${name}=${value}") env}
+    ${toShellVar "NIX_SCRIPT_MAIN" ../../main.nix}
 
     ${fileContents ../../nix-script.bash}
   '';
