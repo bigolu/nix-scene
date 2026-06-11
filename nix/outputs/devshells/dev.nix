@@ -1,5 +1,9 @@
 { inputs, system }:
 { extraModulesPath, ... }:
+let
+  inherit (builtins) pathExists;
+  testConfig = ../../../test-config.nix;
+in
 {
   imports = [
     "${extraModulesPath}/locale.nix"
@@ -13,6 +17,11 @@
     state
     gcRoot
   ]);
+
+  nix-script = {
+    enable = pathExists testConfig;
+    config = testConfig;
+  };
 
   gcRoot.roots.flake.inputs = inputs;
 

@@ -19,12 +19,19 @@ writeTextFile {
   text = ''
     #!${getExe bash}
 
-    ${toShellVar "NIX_SCRIPT_MAIN" ../../main.nix}
+    ${toShellVar "NIX_SCRIPT_ENV" ../../src/env.nix}
 
-    ${fileContents ../../nix-script.bash}
+    ${fileContents ../../src/nix-script.bash}
   '';
 
-  passthru.devshellModule = {
-    devshell.packages = [bash];
+  passthru = {
+    devshellModule = {
+      devshell.packages = [bash];
+    };
+
+    # In the devshell module, we automatically add nix-script to the devshell if
+    # there's an attribute in `pkgs` named `nix-script`. To ensure it's our
+    # nix-script, we add this attribute.
+    isBigoluNixScript = true;
   };
 }

@@ -79,14 +79,21 @@ function main {
 	fi
 
 	if [[ -z $env ]]; then
+		if [[ ! -v NIX_SCRIPT_CONFIG ]]; then
+			# shellcheck disable=2016
+			log 'Error: Configuration file not found. Set the environment variable `NIX_SCRIPT_CONFIG` to the path of your configuration file'
+			return 1
+		fi
+
 		env="$(
 			nix \
 				build \
 				--no-link \
 				--impure \
 				--print-out-paths \
-				--file "${NIX_SCRIPT_MAIN:-main.nix}" \
-				--argstr packageString "${packages[*]}"
+				--file "${NIX_SCRIPT_ENV:-src/env.nix}" \
+				--arg packages "[ $(printf '"%s" ' "${packages[@]}") ]" \
+				--argstr config "$NIX_SCRIPT_CONFIG"
 		)"
 
 		if [[ ${NIX_SCRIPT_GC_ROOT:-} == 'true' ]]; then
@@ -100,24 +107,24 @@ function main {
 
 	local -a command=()
 	if [[ ${NIX_SCRIPT_DEBUG:-} == 'true' ]]; then
-		debug "Runnning $SHELL to debug"
-		debug "Environment: $env"
-		debug "Interpreter: $interpreter"
-		debug "Script: $script"
-		debug "Arguments: ${script_args[*]}"
-		command=("$env/entrypoint" "$SHELL")
+		log "Runnning your shell ($SHELL) to debug"
+		log "Script environment: $env"
+		log "Interpreter: $interpreter"
+		log "Script: $script"
+		log "Arguments: ${script_args[*]}"
+		command=("$SHELL")
 	else
-		command=("$env/entrypoint" "$interpreter" "$script" "${script_args[@]}")
+		command=("$interpreter" "$script" "${script_args[@]}")
 	fi
 
-	exec -- "${command[@]}"
+	exec -- "$env/entrypoint" "${command[@]}"
 }
 
 function nix {
 	command nix --extra-experimental-features nix-command "$@"
 }
 
-function debug {
+function log {
 	echo "[nix-script] $1" >&2
 }
 

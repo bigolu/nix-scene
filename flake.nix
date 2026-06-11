@@ -16,7 +16,7 @@
       devshellModules.nix-script = import ./nix/outputs/devshellModules/nix-script.nix { inherit inputs; };
 
       overlays.default = final: _prev: {
-        loadNixScripts = final.callPackage ./nix/outputs/legacyPackages/loadNixScripts.nix { };
+        setUpNixScript = final.callPackage ./nix/outputs/legacyPackages/setUpNixScript.nix { };
         nix-script = final.callPackage ./nix/outputs/package.nix { };
       };
     }
@@ -25,9 +25,9 @@
         import ./nix/outputs/devshells/dev.nix { inherit inputs system; }
       );
 
-      legacyPackages.loadNixScripts =
+      legacyPackages.setUpNixScript =
         inputs.nixpkgs.legacyPackages.${system}.callPackage
-          ./nix/outputs/legacyPackages/loadNixScripts.nix
+          ./nix/outputs/legacyPackages/setUpNixScript.nix
           { };
 
       packages.default =

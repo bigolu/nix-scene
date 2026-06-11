@@ -1,9 +1,22 @@
 { inputs }:
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   inherit (lib) types mkOption optionalAttrs;
   inherit (pkgs.stdenv.hostPlatform) system;
   inherit (inputs) self;
+
+  # Check `pkgs` before `self` in case the overlay was used
+  setUpNixScript = pkgs.setUpNixScript or self.legacyPackages.${system}.setUpNixScript;
+  nix-script =
+    if pkgs ? nix-script && pkgs.nix-script ? isBigoluNixScript then
+      pkgs.nix-script
+    else
+      self.packages.${system}.default;
 in
 {
   options.nix-script = {
@@ -15,22 +28,27 @@ in
     };
 
     config = mkOption {
-      type = types.oneOf [ types.str types.path ];
+      type = types.oneOf [
+        types.str
+        types.path
+      ];
     };
 
-    paths = mkOption {
-      type = types.listOf (types.oneOf [ types.str types.path ]);
-      default = [];
+    preload = mkOption {
+      type = types.listOf (
+        types.oneOf [
+          types.str
+          types.path
+        ]
+      );
+      default = [ ];
     };
   };
 
-  # Check `pkgs` before `self` in case the overlay was used
-  config.devshell = {
-    packages = [ (pkgs.nix-script or self.packages.${system}.nix-script) ];
-    startup = optionalAttrs config.nix-script.enable {
-      nix-script.text = (pkgs.loadNixScripts or self.legacyPackages.${system}.loadNixScripts) {
-        inherit (config.nix-script) config paths;
-      };
+  config.devshell = optionalAttrs config.nix-script.enable {
+    packages = [ nix-script ];
+    startup = {
+      nix-script.text = setUpNixScript { inherit (config.nix-script) config preload; };
     };
   };
 }

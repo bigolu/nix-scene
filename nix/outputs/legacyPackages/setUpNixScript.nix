@@ -4,7 +4,7 @@
 }:
 {
   config,
-  paths ? [],
+  preload ? [ ],
 }:
 let
   inherit (builtins)
@@ -23,9 +23,9 @@ let
     sublist
     join
     concatLines
-    optionalString
-    escapeShellArg
     any
+    toShellVar
+    optional
     ;
   inherit (lib.lists) findFirstIndex;
   inherit (lib.filesystem) listFilesRecursive;
@@ -56,28 +56,32 @@ let
 
       packagesFlagIndex = findFirstIndex (arg: arg == "--packages" || arg == "-p") null args;
       packages = sublist (packagesFlagIndex + 1) (length args) args;
-      packageString = join " " packages;
 
-      env = import ../../../main.nix {
-        inherit packageString;
-        configFromNixApi = config;
-      };
+      env = import ../../../src/env.nix { inherit packages config; };
     in
-    { inherit env packageString; };
+    {
+      inherit env packages;
+    };
+
+  toEnvVar = name: value: "export ${toShellVar "NIX_SCRIPT_${name}" value}";
+
+  makeCacheEnvVar =
+    scripts:
+    pipe scripts [
+      (concatMap (
+        script: with (loadNixScript script); [
+          (join " " packages)
+          env
+        ]
+      ))
+      concatLines
+      (cacheLines: toEnvVar "CACHE" (writeText "nix-script-cache" cacheLines))
+    ];
 in
-pipe paths [
+pipe preload [
   (concatMap (path: (if pathIsDirectory path then listFilesRecursive else toList) path))
   (filter hasDirective)
-  (concatMap (path: with (loadNixScript path); [ packageString env ]))
+  (scripts: optional (scripts != [ ]) (makeCacheEnvVar scripts))
+  (envVars: envVars ++ [ (toEnvVar "CONFIG" config) ])
   concatLines
-  (
-    cacheLines:
-      (
-        optionalString (cacheLines != "") ''
-          export NIX_SCRIPT_CACHE=${writeText "nix-script-cache" cacheLines}
-        ''
-      ) + ''
-        export NIX_SCRIPT_CONFIG=${escapeShellArg config}
-      ''
-  )
 ]

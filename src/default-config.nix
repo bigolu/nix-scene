@@ -1,5 +1,5 @@
 {
-  nixpkgs = abort "[nix-script] Error: You must provide a nixpkgs instance.";
+  nixpkgs = abort "[nix-script] Error: You must specify a nixpkgs instance in your configuration file.";
 
   buildEnv =
     {
@@ -7,21 +7,12 @@
       packages,
     }:
     let
-      inherit (nixpkgs) buildEnv writeScript bash;
+      inherit (nixpkgs) buildEnv writeText bash;
       inherit (nixpkgs.lib) getExe getAttrFromPath splitString;
 
-      entrypoint = writeScript "entrypoint" ''
+      entrypoint = writeText "entrypoint" ''
         #!${getExe bash}
-
-        set -o errexit
-        set -o nounset
-        set -o pipefail
-        shopt -s nullglob
-        shopt -s inherit_errexit
-
-        export PATH=@NIX_SCRIPT_ENV@/bin"''${PATH:+:$PATH}"
-
-        exec -- "$@"
+        PATH=@NIX_SCRIPT_ENV@/bin"''${PATH:+:$PATH}" exec -- "$@"
       '';
     in
     buildEnv {
