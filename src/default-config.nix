@@ -18,6 +18,9 @@
     buildEnv {
       name = "nix-scene-env";
       paths = map (p: getAttrFromPath (splitString "." p) nixpkgs) packages;
+      # Users won't be able to resolve a collision by setting priorities.
+      ignoreCollisions = true;
+      pathsToLink = ["/bin"];
       postBuild = ''
         substitute ${entrypoint} $out/entrypoint --subst-var-by NIX_SCENE_ENV $out
         chmod +x $out/entrypoint
