@@ -26,6 +26,7 @@ let
     any
     toShellVar
     optional
+    optionalString
     ;
   inherit (lib.lists) findFirstIndex;
   inherit (lib.filesystem) listFilesRecursive;
@@ -42,7 +43,7 @@ let
       (any isDirective)
     ];
 
-  loadNixScript =
+  parseScript =
     script:
     let
       args = pipe script [
@@ -56,32 +57,35 @@ let
 
       packagesFlagIndex = findFirstIndex (arg: arg == "--packages" || arg == "-p") null args;
       packages = sublist (packagesFlagIndex + 1) (length args) args;
-
-      env = import ../../../src/env.nix { inherit packages config; };
     in
     {
-      inherit env packages;
+      inherit packages;
     };
 
-  toEnvVar = name: value: "export ${toShellVar "NIX_SCRIPT_${name}" value}";
+  buildEnv = packages: import ../../../src/env.nix { inherit packages config; };
 
-  makeCacheEnvVar =
-    scripts:
-    pipe scripts [
-      (concatMap (
-        script: with (loadNixScript script); [
-          (join " " packages)
-          env
-        ]
-      ))
-      concatLines
-      (cacheLines: toEnvVar "CACHE" (writeText "nix-script-cache" cacheLines))
-    ];
+  toEnvVar = name: value: "export ${toShellVar "NIX_SCENE_${name}" value}";
+
+  cacheEnvVar = pipe preload [
+    (concatMap (path: (if pathIsDirectory path then listFilesRecursive else toList) path))
+    (filter hasDirective)
+    (concatMap (
+      script:
+      let
+        inherit (parseScript script) packages;
+      in
+      [
+        (join " " packages)
+        (buildEnv packages)
+      ]
+    ))
+    concatLines
+    (
+      cacheLines:
+      optionalString (cacheLines != "") (toEnvVar "CACHE" (writeText "nix-scene-cache" cacheLines))
+    )
+  ];
+
+  envVars = [ (toEnvVar "CONFIG" config) ] ++ optional (cacheEnvVar != "") cacheEnvVar;
 in
-pipe preload [
-  (concatMap (path: (if pathIsDirectory path then listFilesRecursive else toList) path))
-  (filter hasDirective)
-  (scripts: optional (scripts != [ ]) (makeCacheEnvVar scripts))
-  (envVars: envVars ++ [ (toEnvVar "CONFIG" config) ])
-  concatLines
-]
+concatLines envVars

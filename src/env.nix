@@ -1,4 +1,4 @@
-{ packages, config, }:
+{ packages, config }:
 let
   mergedConfig = (import ./default-config.nix) // (import config);
 in

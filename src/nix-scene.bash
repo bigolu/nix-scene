@@ -7,7 +7,7 @@ shopt -s nullglob
 shopt -s inherit_errexit
 
 DIRECTIVE_PREFIX='#nix '
-GC_ROOT_DIRECTORY="${XDG_CACHE_HOME:-$HOME/.cache}/nix-script"
+GC_ROOT_DIRECTORY="${XDG_CACHE_HOME:-$HOME/.cache}/nix-scene"
 
 function main {
 	local script="$1"
@@ -55,9 +55,9 @@ function main {
 
 	local env=''
 
-	if [[ -n ${NIX_SCRIPT_CACHE:-} ]]; then
+	if [[ -n ${NIX_SCENE_CACHE:-} ]]; then
 		local -a cache_items
-		readarray -t cache_items <"$NIX_SCRIPT_CACHE"
+		readarray -t cache_items <"$NIX_SCENE_CACHE"
 
 		local target="${packages[*]}"
 
@@ -79,9 +79,9 @@ function main {
 	fi
 
 	if [[ -z $env ]]; then
-		if [[ ! -v NIX_SCRIPT_CONFIG ]]; then
+		if [[ ! -v NIX_SCENE_CONFIG ]]; then
 			# shellcheck disable=2016
-			log 'Error: Configuration file not found. Set the environment variable `NIX_SCRIPT_CONFIG` to the path of your configuration file'
+			log 'Error: Configuration file not found. Set the environment variable `NIX_SCENE_CONFIG` to the path of your configuration file'
 			return 1
 		fi
 
@@ -91,12 +91,12 @@ function main {
 				--no-link \
 				--impure \
 				--print-out-paths \
-				--file "${NIX_SCRIPT_ENV:-src/env.nix}" \
+				--file "${NIX_SCENE_ENV:-src/env.nix}" \
 				--arg packages "[ $(printf '"%s" ' "${packages[@]}") ]" \
-				--argstr config "$NIX_SCRIPT_CONFIG"
+				--argstr config "$NIX_SCENE_CONFIG"
 		)"
 
-		if [[ ${NIX_SCRIPT_GC_ROOT:-} == 'true' ]]; then
+		if [[ ${NIX_SCENE_GC_ROOT:-} == 'true' ]]; then
 			local env_basename="${env##*/}"
 			local gc_root="$GC_ROOT_DIRECTORY/$env_basename"
 			if [[ ! -e $gc_root ]]; then
@@ -106,7 +106,7 @@ function main {
 	fi
 
 	local -a command=()
-	if [[ ${NIX_SCRIPT_DEBUG:-} == 'true' ]]; then
+	if [[ ${NIX_SCENE_DEBUG:-} == 'true' ]]; then
 		log "Runnning your shell ($SHELL) to debug"
 		log "Script environment: $env"
 		log "Interpreter: $interpreter"
@@ -125,7 +125,7 @@ function nix {
 }
 
 function log {
-	echo "[nix-script] $1" >&2
+	echo "[nix-scene] $1" >&2
 }
 
 main "$@"

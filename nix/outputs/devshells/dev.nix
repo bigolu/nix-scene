@@ -8,7 +8,7 @@ in
   imports = [
     "${extraModulesPath}/locale.nix"
     inputs.self.packages.${system}.default.devshellModule
-    inputs.self.devshellModules.nix-script
+    inputs.self.devshellModules.nix-scene
     ./modules/vscode.nix
   ]
   ++ (with inputs.devshell-modules.devshellModules; [
@@ -18,7 +18,7 @@ in
     gcRoot
   ]);
 
-  nix-script = {
+  nix-scene = {
     enable = pathExists testConfig;
     config = testConfig;
   };

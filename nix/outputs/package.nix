@@ -5,7 +5,7 @@
 }:
 let
   inherit (lib) getExe fileContents toShellVar;
-  pname = "nix-script";
+  pname = "nix-scene";
 in
 # PERF: Since we don't cache this build we don't want to have many build
 # dependencies. For this reason, we don't use `resholve` since it depends on
@@ -19,19 +19,12 @@ writeTextFile {
   text = ''
     #!${getExe bash}
 
-    ${toShellVar "NIX_SCRIPT_ENV" ../../src/env.nix}
+    ${toShellVar "NIX_SCENE_ENV" ../../src/env.nix}
 
-    ${fileContents ../../src/nix-script.bash}
+    ${fileContents ../../src/nix-scene.bash}
   '';
 
-  passthru = {
-    devshellModule = {
-      devshell.packages = [bash];
-    };
-
-    # In the devshell module, we automatically add nix-script to the devshell if
-    # there's an attribute in `pkgs` named `nix-script`. To ensure it's our
-    # nix-script, we add this attribute.
-    isBigoluNixScript = true;
+  passthru.devshellModule = {
+    devshell.packages = [ bash ];
   };
 }

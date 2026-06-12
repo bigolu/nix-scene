@@ -13,11 +13,13 @@
   outputs =
     inputs:
     {
-      devshellModules.nix-script = import ./nix/outputs/devshellModules/nix-script.nix { inherit inputs; };
+      devshellModules.nix-scene = import ./nix/outputs/devshellModules/nix-scene.nix {
+        inherit inputs;
+      };
 
       overlays.default = final: _prev: {
-        setUpNixScript = final.callPackage ./nix/outputs/legacyPackages/setUpNixScript.nix { };
-        nix-script = final.callPackage ./nix/outputs/package.nix { };
+        setUpNixScene = final.callPackage ./nix/outputs/legacyPackages/setUpNixScene.nix { };
+        nix-scene = final.callPackage ./nix/outputs/package.nix { };
       };
     }
     // inputs.flake-utils.lib.eachDefaultSystem (system: {
@@ -25,14 +27,12 @@
         import ./nix/outputs/devshells/dev.nix { inherit inputs system; }
       );
 
-      legacyPackages.setUpNixScript =
-        inputs.nixpkgs.legacyPackages.${system}.callPackage
-          ./nix/outputs/legacyPackages/setUpNixScript.nix
+      legacyPackages.setUpNixScene =
+        inputs.nixpkgs.legacyPackages.${system}.callPackage ./nix/outputs/legacyPackages/setUpNixScene.nix
           { };
 
       packages.default =
-        inputs.nixpkgs.legacyPackages.${system}.callPackage
-          ./nix/outputs/package.nix
+        inputs.nixpkgs.legacyPackages.${system}.callPackage ./nix/outputs/package.nix
           { };
     });
 }

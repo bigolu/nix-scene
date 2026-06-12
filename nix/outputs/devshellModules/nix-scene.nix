@@ -11,20 +11,16 @@ let
   inherit (inputs) self;
 
   # Check `pkgs` before `self` in case the overlay was used
-  setUpNixScript = pkgs.setUpNixScript or self.legacyPackages.${system}.setUpNixScript;
-  nix-script =
-    if pkgs ? nix-script && pkgs.nix-script ? isBigoluNixScript then
-      pkgs.nix-script
-    else
-      self.packages.${system}.default;
+  setUpNixScene = pkgs.setUpNixScene or self.legacyPackages.${system}.setUpNixScene;
+  nix-scene = pkgs.nix-scene or self.packages.${system}.default;
 in
 {
-  options.nix-script = {
+  options.nix-scene = {
     enable = mkOption {
       default = true;
       example = true;
       type = types.bool;
-      description = "Whether to enable the setup for `nix-script`.";
+      description = "Whether to enable the setup for `nix-scene`.";
     };
 
     config = mkOption {
@@ -45,10 +41,10 @@ in
     };
   };
 
-  config.devshell = optionalAttrs config.nix-script.enable {
-    packages = [ nix-script ];
+  config.devshell = optionalAttrs config.nix-scene.enable {
+    packages = [ nix-scene ];
     startup = {
-      nix-script.text = setUpNixScript { inherit (config.nix-script) config preload; };
+      nix-scene.text = setUpNixScene { inherit (config.nix-scene) config preload; };
     };
   };
 }
