@@ -25,67 +25,75 @@ let
     concatLines
     any
     toShellVar
-    optional
+    optionals
     optionalString
     ;
   inherit (lib.lists) findFirstIndex;
   inherit (lib.filesystem) listFilesRecursive;
 
-  directivePrefix = "#nix ";
-
-  isDirective = hasPrefix directivePrefix;
-
-  hasDirective =
-    file:
-    pipe file [
-      readFile
-      (splitString "\n")
-      (any isDirective)
-    ];
-
-  parseScript =
-    script:
-    let
-      args = pipe script [
-        readFile
-        (splitString "\n")
-        (filter isDirective)
-        (map (removePrefix directivePrefix))
-        (concatMap (splitString " "))
-        (filter (s: s != ""))
-      ];
-
-      packagesFlagIndex = findFirstIndex (arg: arg == "--packages" || arg == "-p") null args;
-      packages = sublist (packagesFlagIndex + 1) (length args) args;
-    in
-    {
-      inherit packages;
-    };
-
-  buildEnv = { script, packages, }: import ../../../src/env.nix { inherit packages config script; };
-
   toEnvVar = name: value: "export ${toShellVar "NIX_SCENE_${name}" value}";
 
-  cacheEnvVar = pipe preload [
-    (concatMap (path: (if pathIsDirectory path then listFilesRecursive else toList) path))
-    (filter hasDirective)
-    (concatMap (
-      script:
-      let
-        inherit (parseScript script) packages;
-      in
-      [
-        (join " " packages)
-        (buildEnv { inherit packages script; })
-      ]
-    ))
-    concatLines
-    (
-      cacheLines:
-      optionalString (cacheLines != "") (toEnvVar "CACHE" (writeText "nix-scene-cache" cacheLines))
-    )
-  ];
+  cacheEnvVar =
+    let
+      directivePrefix = "#nix ";
 
-  envVars = [ (toEnvVar "CONFIG" config) ] ++ optional (cacheEnvVar != "") cacheEnvVar;
+      isDirective = hasPrefix directivePrefix;
+
+      hasDirective =
+        file:
+        pipe file [
+          readFile
+          (splitString "\n")
+          (any isDirective)
+        ];
+
+      parseScript =
+        script:
+        pipe script [
+          readFile
+          (splitString "\n")
+          (filter isDirective)
+          (map (removePrefix directivePrefix))
+          (concatMap (splitString " "))
+          # We'll have empty strings if there were consecutive spaces in the string we split.
+          (filter (s: s != ""))
+          (
+            args:
+            let
+              packagesFlagIndex = findFirstIndex (arg: arg == "--packages" || arg == "-p") null args;
+            in
+            sublist (packagesFlagIndex + 1) (length args) args
+          )
+          (packages: { inherit packages; })
+        ];
+
+      buildEnv = { script, packages }: import ../../../src/env.nix { inherit packages config script; };
+    in
+    pipe preload [
+      (concatMap (path: (if pathIsDirectory path then listFilesRecursive else toList) path))
+      (filter hasDirective)
+      (concatMap (
+        script:
+        let
+          inherit (parseScript script) packages;
+        in
+        [
+          (join " " packages)
+          (buildEnv { inherit packages script; })
+        ]
+      ))
+      concatLines
+      (
+        cacheLines:
+        optionalString (cacheLines != "") (toEnvVar "CACHE" (writeText "nix-scene-cache" cacheLines))
+      )
+    ];
 in
-concatLines envVars
+concatLines (
+  [
+    (toEnvVar "CONFIG" config)
+  ]
+  ++ optionals (cacheEnvVar != "") [
+    cacheEnvVar
+  ]
+)
