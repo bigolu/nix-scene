@@ -79,7 +79,7 @@ function main {
 	fi
 
 	if [[ -z $env ]]; then
-		if [[ ! -v NIX_SCENE_CONFIG ]]; then
+		if [[ -z ${NIX_SCENE_CONFIG:-} ]]; then
 			# shellcheck disable=2016
 			log 'Error: Configuration file not found. Set the environment variable `NIX_SCENE_CONFIG` to the path of your configuration file'
 			return 1
