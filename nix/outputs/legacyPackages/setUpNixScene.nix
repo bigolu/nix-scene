@@ -62,7 +62,7 @@ let
       inherit packages;
     };
 
-  buildEnv = packages: import ../../../src/env.nix { inherit packages config; };
+  buildEnv = { script, packages, }: import ../../../src/env.nix { inherit packages config script; };
 
   toEnvVar = name: value: "export ${toShellVar "NIX_SCENE_${name}" value}";
 
@@ -76,7 +76,7 @@ let
       in
       [
         (join " " packages)
-        (buildEnv packages)
+        (buildEnv { inherit packages script; })
       ]
     ))
     concatLines

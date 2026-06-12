@@ -5,10 +5,12 @@
     {
       nixpkgs,
       packages,
+      script,
     }:
     let
       inherit (nixpkgs) buildEnv writeText bash;
       inherit (nixpkgs.lib) getExe getAttrFromPath splitString;
+      inherit (nixpkgs.lib.strings) sanitizeDerivationName;
 
       entrypoint = writeText "entrypoint" ''
         #!${getExe bash}
@@ -16,7 +18,7 @@
       '';
     in
     buildEnv {
-      name = "nix-scene-env";
+      name = "nix-scene-env-${sanitizeDerivationName (baseNameOf script)}";
       paths = map (p: getAttrFromPath (splitString "." p) nixpkgs) packages;
       # Users won't be able to resolve a collision by setting priorities.
       ignoreCollisions = true;
