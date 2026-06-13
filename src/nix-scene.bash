@@ -59,7 +59,10 @@ function main {
 		local -a cache_items
 		readarray -t cache_items <"$NIX_SCENE_CACHE"
 
-		local target="${packages[*]}"
+		local -a sorted_packages
+		# Normalize the package order so users can get a cache hit regardless of order.
+		readarray -t sorted_packages < <(printf '%s\n' "${packages[@]}" | sort)
+		local target="${sorted_packages[*]}"
 
 		local found_match=''
 		for item in "${cache_items[@]}"; do

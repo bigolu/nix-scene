@@ -12,6 +12,8 @@ let
     readFile
     filter
     length
+    sort
+    lessThan
     ;
   inherit (lib)
     pipe
@@ -78,7 +80,8 @@ let
           inherit (parseScript script) packages;
         in
         [
-          (join " " packages)
+          # Normalize the package order so users can get a cache hit regardless of order.
+          (join " " (sort lessThan packages))
           (buildEnv packages)
         ]
       ))
