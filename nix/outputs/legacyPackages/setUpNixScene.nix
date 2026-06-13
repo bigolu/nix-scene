@@ -29,7 +29,6 @@ let
     toShellVar
     optionals
     optionalString
-    uniqueStrings
     ;
   inherit (lib.lists) findFirstIndex;
   inherit (lib.filesystem) listFilesRecursive;
@@ -75,15 +74,17 @@ let
     pipe preload [
       (concatMap (path: (if pathIsDirectory path then listFilesRecursive else toList) path))
       (filter hasDirective)
-      (map (
+      (concatMap (
         script:
         let
           inherit (parseScript script) packages;
         in
-        # Normalize the package order so users can get a cache hit regardless of order.
-        "${join " " (sort lessThan packages)}\n${buildEnv packages}"
+        [
+          # Normalize the package order so users can get a cache hit regardless of order.
+          (join " " (sort lessThan packages))
+          (buildEnv packages)
+        ]
       ))
-      uniqueStrings
       concatLines
       (
         cacheLines:
