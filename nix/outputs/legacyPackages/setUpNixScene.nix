@@ -29,6 +29,7 @@ let
     toShellVar
     optionals
     optionalString
+    unique
     ;
   inherit (lib.lists) findFirstIndex;
   inherit (lib.filesystem) listFilesRecursive;
@@ -85,6 +86,7 @@ let
           (buildEnv packages)
         ]
       ))
+      unique
       concatLines
       (
         cacheLines:
