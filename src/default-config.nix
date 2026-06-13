@@ -18,7 +18,8 @@
     buildEnv {
       name = "nix-scene-env";
       paths = map (p: getAttrFromPath (splitString "." p) nixpkgs) packages;
-      # Users won't be able to resolve a collision by setting priorities.
+      # By ignoring collisions, users can easily decide which binary gets priority
+      # by changing the order of the packages.
       ignoreCollisions = true;
       pathsToLink = ["/bin"];
       postBuild = ''
