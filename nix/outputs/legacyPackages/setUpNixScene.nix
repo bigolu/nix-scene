@@ -67,7 +67,7 @@ let
           (packages: { inherit packages; })
         ];
 
-      buildEnv = { script, packages }: import ../../../src/env.nix { inherit packages config script; };
+      buildEnv = packages: import ../../../src/env.nix { inherit packages config; };
     in
     pipe preload [
       (concatMap (path: (if pathIsDirectory path then listFilesRecursive else toList) path))
@@ -79,7 +79,7 @@ let
         in
         [
           (join " " packages)
-          (buildEnv { inherit packages script; })
+          (buildEnv packages)
         ]
       ))
       concatLines

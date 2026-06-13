@@ -93,8 +93,7 @@ function main {
 				--print-out-paths \
 				--file "${NIX_SCENE_ENV:-src/env.nix}" \
 				--arg packages "[ $(printf '"%s" ' "${packages[@]}") ]" \
-				--argstr config "$NIX_SCENE_CONFIG" \
-				--argstr script "$script"
+				--argstr config "$NIX_SCENE_CONFIG"
 		)"
 
 		if [[ ${NIX_SCENE_GC_ROOT:-} == 'true' ]]; then
