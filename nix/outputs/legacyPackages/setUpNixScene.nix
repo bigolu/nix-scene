@@ -65,7 +65,6 @@ let
             in
             sublist (packagesFlagIndex + 1) (length args) args
           )
-          (packages: { inherit packages; })
         ];
 
       buildEnv = packages: import ../../../src/env.nix { inherit packages config; };
@@ -76,7 +75,7 @@ let
       (concatMap (
         script:
         let
-          inherit (parseScript script) packages;
+          packages = parseScript script;
         in
         [
           (join " " packages)
@@ -86,8 +85,8 @@ let
       unique
       concatLines
       (
-        cacheLines:
-        optionalString (cacheLines != "") (toEnvVar "CACHE" (writeText "nix-scene-cache" cacheLines))
+        cacheFileContent:
+        optionalString (cacheFileContent != "") (toEnvVar "CACHE" (writeText "nix-scene-cache" cacheFileContent))
       )
     ];
 in
