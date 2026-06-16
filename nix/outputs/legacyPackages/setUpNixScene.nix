@@ -26,7 +26,7 @@ let
     concatLines
     any
     toShellVar
-    optionals
+    optional
     optionalString
     unique
     ;
@@ -87,18 +87,14 @@ let
       concatLines
       (
         cacheFileContent:
-        optionalString (cacheFileContent != "") (toEnvVar "CACHE" (writeText "nix-scene-cache" cacheFileContent))
+        optionalString (cacheFileContent != "") (
+          toEnvVar "CACHE" (writeText "nix-scene-cache" cacheFileContent)
+        )
       )
     ];
 in
 concatLines (
-  [
-    (toEnvVar "CONFIG" config)
-  ]
-  ++ optionals (cacheEnvVar != "") [
-    cacheEnvVar
-  ]
-  ++ optionals makeGcRoots [
-    (toEnvVar "MAKE_GC_ROOTS" "true")
-  ]
+  [ (toEnvVar "CONFIG" config) ]
+  ++ optional (cacheEnvVar != "") cacheEnvVar
+  ++ optional makeGcRoots (toEnvVar "MAKE_GC_ROOTS" "true")
 )
