@@ -96,7 +96,7 @@ function main {
 				--argstr config "$NIX_SCENE_CONFIG"
 		)"
 
-		if [[ ${NIX_SCENE_GC_ROOT:-} == 'true' ]]; then
+		if [[ ${NIX_SCENE_MAKE_GC_ROOTS:-} == 'true' ]]; then
 			local env_basename="${env##*/}"
 			local gc_root="$GC_ROOT_DIRECTORY/$env_basename"
 			if [[ ! -e $gc_root ]]; then

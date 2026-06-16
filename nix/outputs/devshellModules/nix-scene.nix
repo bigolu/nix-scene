@@ -6,7 +6,7 @@
   ...
 }:
 let
-  inherit (lib) types mkOption optionalAttrs;
+  inherit (lib) types mkOption optionalAttrs mkEnableOption;
   inherit (pkgs.stdenv.hostPlatform) system;
   inherit (inputs) self;
 
@@ -39,12 +39,14 @@ in
       );
       default = [ ];
     };
+
+    makeGcRoots = mkEnableOption "the creation of GC roots";
   };
 
   config.devshell = optionalAttrs config.nix-scene.enable {
     packages = [ nix-scene ];
     startup = {
-      nix-scene.text = setUpNixScene { inherit (config.nix-scene) config preload; };
+      nix-scene.text = setUpNixScene { inherit (config.nix-scene) config preload makeGcRoots; };
     };
   };
 }

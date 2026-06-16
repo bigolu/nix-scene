@@ -5,6 +5,7 @@
 {
   config,
   preload ? [ ],
+  makeGcRoots,
 }:
 let
   inherit (builtins)
@@ -96,5 +97,8 @@ concatLines (
   ]
   ++ optionals (cacheEnvVar != "") [
     cacheEnvVar
+  ]
+  ++ optionals makeGcRoots [
+    (toEnvVar "MAKE_GC_ROOTS" "true")
   ]
 )
