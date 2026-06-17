@@ -96,5 +96,5 @@ in
 concatLines (
   [ (toEnvVar "CONFIG" config) ]
   ++ optional (cacheEnvVar != "") cacheEnvVar
-  ++ optional makeGcRoots (toEnvVar "MAKE_GC_ROOTS" "true")
+  ++ optional makeGcRoots (toEnvVar "MAKE_GC_ROOT" "true")
 )
