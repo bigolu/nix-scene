@@ -85,6 +85,9 @@ function main {
 			return 1
 		fi
 
+		local system
+		system="$(nix eval --impure --raw --expr 'builtins.currentSystem')"
+
 		env="$(
 			nix \
 				build \
@@ -93,7 +96,8 @@ function main {
 				--print-out-paths \
 				--file "${NIX_SCENE_ENV:-src/env.nix}" \
 				--arg packages "[ $(printf '"%s" ' "${packages[@]}") ]" \
-				--argstr config "$NIX_SCENE_CONFIG"
+				--argstr config "$NIX_SCENE_CONFIG" \
+				--argstr system "$system"
 		)"
 
 		if [[ ${NIX_SCENE_MAKE_GC_ROOT:-} == 'true' ]]; then

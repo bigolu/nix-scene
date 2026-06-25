@@ -1,6 +1,7 @@
 {
   lib,
   writeText,
+  stdenv,
 }:
 {
   config,
@@ -68,7 +69,7 @@ let
           )
         ];
 
-      buildEnv = packages: import ../../../src/env.nix { inherit packages config; };
+      buildEnv = packages: import ../../../src/env.nix { inherit packages config; inherit (stdenv.buildPlatform) system; };
     in
     pipe preload [
       (concatMap (path: (if pathIsDirectory path then listFilesRecursive else toList) path))
